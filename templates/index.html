@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jarvis do Fabrício Cruz</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f2f7fc;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.05);
+    }
+    h1 {
+      color: #1565c0;
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: 600;
+      color: #333;
+    }
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background-color: #1565c0;
+      color: white;
+      border: none;
+      padding: 0.8rem;
+      width: 100%;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0d47a1;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    .loading {
+      display: none;
+      margin-top: 1rem;
+      color: #1565c0;
+      font-style: italic;
+    }
+    .insight-block {
+      background: #e3f2fd;
+      border-left: 4px solid #1565c0;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.04);
+      page-break-inside: avoid;
+    }
+    .insight-block h3 {
+      color: #0d47a1;
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+    }
+    .insight-block p {
+      margin-top: 0.4rem;
+      margin-bottom: 0.4rem;
+      line-height: 1.6;
+    }
+    .insight-block ul {
+      padding-left: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .insight-block li {
+      margin-bottom: 0.5rem;
+    }
+  </style>
+  <script>
+    function showLoading() {
+      document.getElementById('loading').style.display = 'block';
+    }
+
+    function showPdfLoading() {
+      const button = document.getElementById('pdf-button');
+      const spinner = document.getElementById('pdf-spinner');
+      button.innerHTML = '⏳ Gerando PDF...';
+      button.disabled = true;
+      spinner.style.display = 'inline-block';
+    }
+
+    function restorePdfButton() {
+      const button = document.getElementById('pdf-button');
+      const spinner = document.getElementById('pdf-spinner');
+      button.innerHTML = '📄 Baixar PDF';
+      button.disabled = false;
+      spinner.style.display = 'none';
+    }
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Jarvis do Fabrício Cruz 🤖</h1>
+
+    {% if error %}
+      <div style="
+        background-color: #fdecea;
+        border: 1px solid #f5c6cb;
+        color: #a94442;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      ">
+        <span style="font-size: 1.2rem;">❌</span>
+        <span><strong>{{ error }}</strong></span>
+      </div>
+    {% endif %}
+
+    <form method="POST" action="/generate" onsubmit="showLoading()">
+      <label>Email do LinkedIn:</label>
+      <input type="email" name="email" required>
+
+      <label>Senha do LinkedIn:</label>
+      <input type="password" name="password" required>
+
+      <label>URL do Perfil no LinkedIn:</label>
+      <input type="text" name="profile" required>
+
+      <label>URL da Empresa no LinkedIn (opcional):</label>
+      <input type="text" name="company">
+
+      <button type="submit">Gerar Insights</button>
+    </form>
+
+    <div id="loading" class="loading">⏳ Processando… coletando dados e gerando insights...</div>
+
+    {% if insights %}
+      <h2 style="margin-top: 2rem; color: #1565c0;">🧠 Insights Gerados:</h2>
+
+      {% for title, body in insights %}
+        <div class="insight-block">
+          <h3>{{ title }}</h3>
+          {% for line in body %}
+            {% if line.startswith('- ') %}
+              <ul><li>{{ line[2:] | safe }}</li></ul>
+            {% else %}
+              <p>{{ line | safe }}</p>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+
+      <form method="POST" action="/baixar-pdf" onsubmit="showPdfLoading()">
+        <input type="hidden" name="data" value='{{ insights | tojson | safe }}'>
+        <button id="pdf-button" type="submit" style="margin-top: 1rem; background: #4caf50;">📄 Baixar PDF</button>
+        <span id="pdf-spinner" style="display:none; margin-left: 10px; color: #4caf50;">Gerando...</span>
+      </form>
+    {% endif %}
+  </div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+Flask
+python-dotenv
+openai
+linkedin-scraper
+selenium
+webdriver-manager
